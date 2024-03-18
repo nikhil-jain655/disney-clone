@@ -1,17 +1,49 @@
 import styled from "styled-components";
+import { auth, googleAuthProvider } from "./firebase";
+import { signInWithPopup } from "firebase/auth";
 
 const Header = () => {
+
+    const handleAuth = async () =>{
+        try{
+            let result = await signInWithPopup(auth, googleAuthProvider);
+            console.log(result);
+        } catch (error) {
+            console.error("Error while sining: ", error)
+        }
+    }
     return (
         <Nav>
             <Logo>
-                <img src="/images/logo.svg" />
+                <img src="/images/logo.svg" alt="logo" />
             </Logo>
             <NavMenu>
                 <a href='/home'>
-                    <img src="/images/home-icon.svg" />
+                    <img src="/images/home-icon.svg" alt="home" />
                     <span>HOME</span>
                 </a>
+                <a href='/search'>
+                    <img src="/images/search-icon.svg" alt="search" />
+                    <span>SEARCH</span>
+                </a>
+                <a href='/watchlist'>
+                    <img src="/images/watchlist-icon.svg" alt="watchlist" />
+                    <span>WATCHLIST</span>
+                </a>
+                <a href='/originals'>
+                    <img src="/images/original-icon.svg" alt="original" />
+                    <span>ORIGINALS</span>
+                </a>
+                <a href='/movies'>
+                    <img src="/images/movie-icon.svg" alt="movie" />
+                    <span>MOVIES</span>
+                </a>
+                <a href='/series'>
+                    <img src="/images/series-icon.svg" alt="series" />
+                    <span>SERIES</span>
+                </a>
             </NavMenu>
+            <Login onClick={handleAuth}>Login</Login>
         </Nav>
     )
 }
@@ -34,6 +66,7 @@ const Nav = styled.div`
 const Logo = styled.a`
     padding: 0;
     width: 80px;
+    min-width: 80px;
     margin-top: 4px;
     max-height: 70px;
     font-size: 0;
@@ -115,10 +148,22 @@ const NavMenu = styled.div`
         }
     }
 }
-    
-    /* &:hover {
-        text-decoration
-    } */
 `
+
+const Login = styled.a`
+    background-color: rgba(0,0,0,0.6);
+    padding: 8px 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border: 1px solid #f9f9f9;
+    border-radius: 4px;
+    transition: all 200ms ease 0s;
+
+    &:hover{
+        background-color: #f9f9f9;
+        color: #000;
+        border-color: transparent;
+    }
+`;
 
 export default Header;
