@@ -1,22 +1,41 @@
 import styled from "styled-components";
 import { auth, googleAuthProvider } from "./firebase";
 import { signInWithPopup } from "firebase/auth";
+import { useDispatch, useSelector } from 'react-redux'
+// import { useHistory } from 'react-router-dom'
+import { selectUserName, selectUserPhoto, setUserLoginDetails } from "../features/user/userSlice";
 
-const Header = () => {
+const Header = (props) => {
+    const dispatch = useDispatch();
+    // const history = useHistory();
+    const userName = useSelector(selectUserName);
+    // const userEmail = useSelector(selectUserEmail);
+    const userPhoto = useSelector(selectUserPhoto);
 
     const handleAuth = async () =>{
         try{
             let result = await signInWithPopup(auth, googleAuthProvider);
+            setUser(result.user);
             console.log(result);
         } catch (error) {
             console.error("Error while sining: ", error)
         }
+    }
+
+    const setUser = (user) => {
+        dispatch(setUserLoginDetails({
+            name: user.displayName,
+            email: user.email,
+            photo: user.photoURL
+        }))
     }
     return (
         <Nav>
             <Logo>
                 <img src="/images/logo.svg" alt="logo" />
             </Logo>
+            {!userName ? (<Login onClick={handleAuth}></Login>):
+            (<>
             <NavMenu>
                 <a href='/home'>
                     <img src="/images/home-icon.svg" alt="home" />
@@ -43,7 +62,10 @@ const Header = () => {
                     <span>SERIES</span>
                 </a>
             </NavMenu>
-            <Login onClick={handleAuth}>Login</Login>
+            <UserProfile>
+                <img src={userPhoto} alt="userPhoto" />
+            </UserProfile>
+            </>)}
         </Nav>
     )
 }
@@ -163,6 +185,21 @@ const Login = styled.a`
         background-color: #f9f9f9;
         color: #000;
         border-color: transparent;
+    }
+`;
+
+const UserProfile = styled.div`
+    padding: 0;
+    width: 40px;
+    min-width: 40px;
+    margin-top: 4px;
+    max-height: 40px;
+    font-size: 0;
+    display: inline-block;
+
+    img {
+        height: 40px;
+        border-radius: 20px;
     }
 `;
 
