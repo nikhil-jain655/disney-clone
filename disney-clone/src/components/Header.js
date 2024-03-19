@@ -1,24 +1,45 @@
 import styled from "styled-components";
-import { auth, googleAuthProvider } from "./firebase";
+import { auth, googleAuthProvider } from "../firebase";
 import { signInWithPopup } from "firebase/auth";
 import { useDispatch, useSelector } from 'react-redux'
-// import { useHistory } from 'react-router-dom'
-import { selectUserName, selectUserPhoto, setUserLoginDetails } from "../features/user/userSlice";
+import { useNavigate } from 'react-router-dom'
+import { selectUserName, selectUserPhoto, setSignOutState, setUserLoginDetails } from "../features/user/userSlice";
+import { useEffect } from "react";
 
 const Header = (props) => {
     const dispatch = useDispatch();
-    // const history = useHistory();
+    const navigate = useNavigate();
     const userName = useSelector(selectUserName);
     // const userEmail = useSelector(selectUserEmail);
     const userPhoto = useSelector(selectUserPhoto);
 
-    const handleAuth = async () =>{
-        try{
-            let result = await signInWithPopup(auth, googleAuthProvider);
-            setUser(result.user);
-            console.log(result);
-        } catch (error) {
-            console.error("Error while sining: ", error)
+    useEffect(() => {
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                setUser(user);
+                navigate('/home');
+            }
+        })
+    }, [userName])
+
+    const handleAuth = async () => {
+        if (!userName) {
+            try {
+                let result = await signInWithPopup(auth, googleAuthProvider);
+                setUser(result.user);
+                console.log(result);
+            } catch (error) {
+                console.error("Error while sining: ", error)
+            }
+        } else if (userName) {
+            try {
+                await auth.signOut();
+                dispatch(setSignOutState())
+                navigate('/')
+            } catch (error) {
+                console.error("Error while sign out: ", error)
+            }
+
         }
     }
 
@@ -34,38 +55,43 @@ const Header = (props) => {
             <Logo>
                 <img src="/images/logo.svg" alt="logo" />
             </Logo>
-            {!userName ? (<Login onClick={handleAuth}></Login>):
-            (<>
-            <NavMenu>
-                <a href='/home'>
-                    <img src="/images/home-icon.svg" alt="home" />
-                    <span>HOME</span>
-                </a>
-                <a href='/search'>
-                    <img src="/images/search-icon.svg" alt="search" />
-                    <span>SEARCH</span>
-                </a>
-                <a href='/watchlist'>
-                    <img src="/images/watchlist-icon.svg" alt="watchlist" />
-                    <span>WATCHLIST</span>
-                </a>
-                <a href='/originals'>
-                    <img src="/images/original-icon.svg" alt="original" />
-                    <span>ORIGINALS</span>
-                </a>
-                <a href='/movies'>
-                    <img src="/images/movie-icon.svg" alt="movie" />
-                    <span>MOVIES</span>
-                </a>
-                <a href='/series'>
-                    <img src="/images/series-icon.svg" alt="series" />
-                    <span>SERIES</span>
-                </a>
-            </NavMenu>
-            <UserProfile>
-                <img src={userPhoto} alt="userPhoto" />
-            </UserProfile>
-            </>)}
+            {!userName ? (<Login onClick={handleAuth}>Login</Login>) :
+                (<>
+                    <NavMenu>
+                        <a href='/home'>
+                            <img src="/images/home-icon.svg" alt="home" />
+                            <span>HOME</span>
+                        </a>
+                        <a href='/search'>
+                            <img src="/images/search-icon.svg" alt="search" />
+                            <span>SEARCH</span>
+                        </a>
+                        <a href='/watchlist'>
+                            <img src="/images/watchlist-icon.svg" alt="watchlist" />
+                            <span>WATCHLIST</span>
+                        </a>
+                        <a href='/originals'>
+                            <img src="/images/original-icon.svg" alt="original" />
+                            <span>ORIGINALS</span>
+                        </a>
+                        <a href='/movies'>
+                            <img src="/images/movie-icon.svg" alt="movie" />
+                            <span>MOVIES</span>
+                        </a>
+                        <a href='/series'>
+                            <img src="/images/series-icon.svg" alt="series" />
+                            <span>SERIES</span>
+                        </a>
+                    </NavMenu>
+                    <SignOut>
+                        <UserProfile>
+                            <img src={userPhoto} alt="userPhoto" />
+                        </UserProfile>
+                        <Dropdown>
+                            <span onClick={handleAuth}>Sign Out</span>
+                        </Dropdown>
+                    </SignOut>
+                </>)}
         </Nav>
     )
 }
@@ -188,18 +214,51 @@ const Login = styled.a`
     }
 `;
 
+const Dropdown = styled.div`
+    position: absolute;
+    top: 48px;
+    right: 0;
+    background: rgb(19,19,19);
+    border: 1px solid rgba(151, 151, 151, 0.34);
+    border-radius: 4px;
+    box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px 0px;
+    padding: 5px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    width: 85px;
+    opacity: 0;
+`;
+
+
 const UserProfile = styled.div`
     padding: 0;
-    width: 40px;
-    min-width: 40px;
+    width: 48px;
+    min-width: 48px;
     margin-top: 4px;
-    max-height: 40px;
+    max-height: 48px;
     font-size: 0;
     display: inline-block;
 
     img {
-        height: 40px;
-        border-radius: 20px;
+        height: 48px;
+        border-radius: 50%;
+    }
+`;
+
+const SignOut = styled.div`
+    position: relative;
+    height: 48px;
+    width: 48px;
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        ${Dropdown} {
+            opacity: 1;
+            transition-duration: 1s;
+        }
     }
 `;
 
